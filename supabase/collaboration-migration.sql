@@ -51,6 +51,51 @@ as $$
     );
 $$;
 
+create or replace function public.set_created_by_to_current_user()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if auth.uid() is not null then
+    new.created_by = auth.uid();
+  end if;
+
+  return new;
+end;
+$$;
+
+alter table public.events
+alter column created_by set default auth.uid();
+
+alter table public.budget_items
+alter column created_by set default auth.uid();
+
+alter table public.payments
+alter column created_by set default auth.uid();
+
+insert into public.profiles (id, email)
+select id, email
+from auth.users
+on conflict (id) do update
+set email = excluded.email;
+
+drop trigger if exists set_events_created_by on public.events;
+create trigger set_events_created_by
+before insert on public.events
+for each row execute procedure public.set_created_by_to_current_user();
+
+drop trigger if exists set_budget_items_created_by on public.budget_items;
+create trigger set_budget_items_created_by
+before insert on public.budget_items
+for each row execute procedure public.set_created_by_to_current_user();
+
+drop trigger if exists set_payments_created_by on public.payments;
+create trigger set_payments_created_by
+before insert on public.payments
+for each row execute procedure public.set_created_by_to_current_user();
+
 alter table public.event_collaborators enable row level security;
 
 drop policy if exists "events_select_own" on public.events;
@@ -69,7 +114,7 @@ create policy "events_insert_owner"
 on public.events
 for insert
 to authenticated
-with check (created_by = auth.uid());
+with check (auth.uid() is not null);
 
 drop policy if exists "events_update_own" on public.events;
 drop policy if exists "events_update_all_authenticated" on public.events;

@@ -55,19 +55,16 @@ export async function createEventAction(
     };
   }
 
-  const payload = {
-    name: parsed.data.name,
-    event_date: normalizeOptionalString(parsed.data.eventDate),
-    location: normalizeOptionalString(parsed.data.location),
-    attendee_count: parsed.data.attendeeCount,
-    status: parsed.data.status,
-    currency: parsed.data.currency,
-    budget_cap: parsed.data.budgetCap,
-    notes: normalizeOptionalString(parsed.data.notes),
-    created_by: user.id
-  };
-
-  const { data, error } = await supabase.from("events").insert(payload).select("id").single();
+  const { data, error } = await supabase.rpc("create_event_for_current_user", {
+    p_name: parsed.data.name,
+    p_event_date: normalizeOptionalString(parsed.data.eventDate),
+    p_location: normalizeOptionalString(parsed.data.location),
+    p_attendee_count: parsed.data.attendeeCount,
+    p_status: parsed.data.status,
+    p_currency: parsed.data.currency,
+    p_budget_cap: parsed.data.budgetCap,
+    p_notes: normalizeOptionalString(parsed.data.notes)
+  });
 
   if (error || !data) {
     return {
@@ -77,7 +74,7 @@ export async function createEventAction(
 
   revalidatePath("/dashboard");
   revalidatePath("/events");
-  redirect(`/events/${data.id}`);
+  redirect(`/events/${data}`);
 }
 
 export async function updateEventAction(
