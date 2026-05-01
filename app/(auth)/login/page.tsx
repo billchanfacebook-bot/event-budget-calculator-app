@@ -2,7 +2,12 @@ import { redirect } from "next/navigation";
 import { LoginForm } from "@/components/forms/login-form";
 import { createClient } from "@/lib/supabase/server";
 
-export default async function LoginPage() {
+type LoginPageProps = {
+  searchParams: Promise<{ error?: string }>;
+};
+
+export default async function LoginPage({ searchParams }: LoginPageProps) {
+  const { error = "" } = await searchParams;
   const supabase = await createClient();
   const {
     data: { user }
@@ -32,8 +37,13 @@ export default async function LoginPage() {
           <div className="mb-8 space-y-2">
             <p className="text-sm uppercase tracking-[0.3em] text-moss">Admin access</p>
             <h2 className="text-3xl font-semibold">Sign in</h2>
-            <p className="text-sm text-ink/60">Sign in with your Supabase admin account.</p>
+            <p className="text-sm text-ink/60">Sign in or sign up with Google, or use email/password.</p>
           </div>
+          {error ? (
+            <p className="mb-5 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+              {decodeURIComponent(error)}
+            </p>
+          ) : null}
           <LoginForm />
         </section>
       </div>

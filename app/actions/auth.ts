@@ -1,6 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import type { Route } from "next";
 import { headers } from "next/headers";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
@@ -49,6 +50,29 @@ export async function signInAction(
   }
 
   redirect("/dashboard");
+}
+
+export async function signInWithGoogleAction() {
+  const headerStore = await headers();
+  const origin = headerStore.get("origin") ?? process.env.NEXT_PUBLIC_SITE_URL ?? "";
+  const redirectTo = origin ? `${origin}/auth/callback?next=/dashboard` : undefined;
+  const supabase = await createClient();
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: "google",
+    options: {
+      redirectTo,
+      queryParams: {
+        access_type: "offline",
+        prompt: "select_account"
+      }
+    }
+  });
+
+  if (error || !data.url) {
+    redirect(`/login?error=${encodeURIComponent(error?.message ?? "Unable to continue with Google.")}`);
+  }
+
+  redirect(data.url as Route);
 }
 
 export async function signOutAction() {
