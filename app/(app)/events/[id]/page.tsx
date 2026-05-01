@@ -1,4 +1,6 @@
 import { notFound } from "next/navigation";
+import type { Route } from "next";
+import Link from "next/link";
 import { BudgetItemTable } from "@/components/budget-item-table";
 import { DeleteEventButton } from "@/components/delete-event-button";
 import { EventCharts } from "@/components/event-charts";
@@ -112,6 +114,12 @@ export default async function EventDetailPage({ params, searchParams }: EventDet
             <div className="rounded-2xl bg-shell px-4 py-3 text-sm">
               Currency: <span className="font-semibold">{event.currency}</span>
             </div>
+            <Link
+              href={`/events/${event.id}/settings` as Route}
+              className="inline-flex items-center justify-center rounded-full border border-border px-5 py-3 text-sm font-semibold hover:border-accent hover:text-accent"
+            >
+              Settings
+            </Link>
             <ExportLink href={`/events/${event.id}/export`} label="Export Excel" />
             {canDeleteEvent ? <DeleteEventButton eventId={event.id} /> : null}
           </div>

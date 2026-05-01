@@ -37,7 +37,7 @@ export default async function EventSettingsPage({ params }: EventSettingsPagePro
     supabase.auth.getUser()
   ]);
 
-  if (error || !data || collaboratorsError) {
+  if (error || !data) {
     notFound();
   }
 
@@ -45,7 +45,7 @@ export default async function EventSettingsPage({ params }: EventSettingsPagePro
   const addCollaborator = addEventCollaboratorAction.bind(null, id);
   const removeCollaborator = removeEventCollaboratorAction.bind(null, id);
   const canManageCollaborators = user?.id === data.created_by;
-  const collaboratorRecords: EventCollaboratorRecord[] = (collaborators ?? []).map((collaborator) => ({
+  const collaboratorRecords: EventCollaboratorRecord[] = collaboratorsError ? [] : (collaborators ?? []).map((collaborator) => ({
     id: collaborator.id,
     email: collaborator.email,
     role: collaborator.role,
