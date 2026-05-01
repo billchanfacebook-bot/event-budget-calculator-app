@@ -7,7 +7,11 @@ import { ExportLink } from "@/components/export-link";
 import { EventNotesForm } from "@/components/forms/event-notes-form";
 import { SummaryCard } from "@/components/summary-card";
 import { updateEventNotesAction } from "@/app/actions/events";
-import { createBudgetItemAction, importBudgetItemsAction } from "@/app/actions/budget-items";
+import {
+  batchDeleteBudgetItemsAction,
+  createBudgetItemAction,
+  importBudgetItemsAction
+} from "@/app/actions/budget-items";
 import { getBudgetCategories } from "@/lib/budget-categories";
 import {
   buildCategoryComparisonData,
@@ -74,6 +78,7 @@ export default async function EventDetailPage({ params, searchParams }: EventDet
   const updateNotes = updateEventNotesAction.bind(null, event.id);
   const quickAddAction = createBudgetItemAction.bind(null, event.id);
   const importAction = importBudgetItemsAction.bind(null, event.id);
+  const batchDeleteAction = batchDeleteBudgetItemsAction.bind(null, event.id);
 
   return (
     <div className="space-y-6">
@@ -129,6 +134,7 @@ export default async function EventDetailPage({ params, searchParams }: EventDet
         categories={categories}
         quickAddAction={quickAddAction}
         importAction={importAction}
+        batchDeleteAction={batchDeleteAction}
       />
     </div>
   );
