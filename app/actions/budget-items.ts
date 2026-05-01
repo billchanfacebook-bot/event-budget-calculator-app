@@ -327,3 +327,35 @@ export async function deleteBudgetItemAction(eventId: string, itemId: string) {
   revalidatePath(`/events/${eventId}`);
   redirect(`/events/${eventId}`);
 }
+
+export async function batchDeleteBudgetItemsAction(eventId: string, formData: FormData) {
+  const supabase = await createClient();
+  const {
+    data: { user }
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect("/login");
+  }
+
+  const itemIds = formData
+    .getAll("itemIds")
+    .map((value) => String(value))
+    .filter(Boolean);
+
+  if (itemIds.length === 0) {
+    revalidatePath(`/events/${eventId}`);
+    return;
+  }
+
+  await supabase
+    .from("budget_items")
+    .delete()
+    .eq("event_id", eventId)
+    .in("id", itemIds);
+
+  revalidatePath("/dashboard");
+  revalidatePath("/events");
+  revalidatePath(`/events/${eventId}`);
+  redirect(`/events/${eventId}`);
+}

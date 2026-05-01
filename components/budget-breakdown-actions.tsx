@@ -27,10 +27,10 @@ export function BudgetBreakdownActions({
   const categoryOptions = useMemo(() => categories, [categories]);
 
   return (
-    <div className="flex flex-wrap gap-3">
+    <div className="flex w-full flex-col gap-3 lg:w-auto lg:max-w-5xl lg:flex-row lg:items-start lg:justify-end">
       <Link
         href={`/events/${eventId}/items/new` as Route}
-        className="inline-flex rounded-full bg-accent px-5 py-3 text-sm font-semibold text-white hover:opacity-90"
+        className="inline-flex h-10 shrink-0 items-center justify-center rounded-full bg-accent px-4 text-sm font-semibold text-white hover:opacity-90"
       >
         Add Item
       </Link>
@@ -38,22 +38,22 @@ export function BudgetBreakdownActions({
         type="button"
         onClick={() => setIsQuickAddOpen(true)}
         disabled={!hasCategories}
-        className="inline-flex rounded-full border border-border px-5 py-3 text-sm font-semibold hover:border-accent hover:text-accent disabled:cursor-not-allowed disabled:opacity-50"
+        className="inline-flex h-10 shrink-0 items-center justify-center rounded-full border border-border px-4 text-sm font-semibold hover:border-accent hover:text-accent disabled:cursor-not-allowed disabled:opacity-50"
       >
         Quick Add
       </button>
       <form
         action={importFormAction}
-        className="flex min-w-[260px] flex-1 flex-col gap-2 rounded-[1.5rem] border border-dashed border-border bg-white px-4 py-3"
+        className="flex w-full flex-col gap-2 rounded-2xl border border-dashed border-border bg-white px-3 py-3 lg:w-[420px]"
       >
-        <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
             <p className="text-sm font-semibold">Excel Import</p>
             <p className="text-xs text-ink/55">Drag & drop or choose a workbook to batch import.</p>
           </div>
           <SubmitButton
             pendingLabel="Importing..."
-            className="rounded-full bg-accent px-4 py-2 text-xs font-semibold text-white hover:opacity-90"
+            className="h-9 rounded-full bg-accent px-4 text-xs font-semibold text-white hover:opacity-90"
           >
             Import
           </SubmitButton>
@@ -63,7 +63,7 @@ export function BudgetBreakdownActions({
           name="file"
           accept=".xlsx"
           required
-          className="rounded-2xl border border-border bg-shell px-3 py-3 text-sm file:mr-3 file:rounded-full file:border-0 file:bg-accent file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:opacity-90"
+          className="min-w-0 rounded-xl border border-border bg-shell px-3 py-2 text-sm file:mr-3 file:rounded-full file:border-0 file:bg-accent file:px-3 file:py-1.5 file:text-sm file:font-semibold file:text-white hover:file:opacity-90"
         />
         {importState.error ? (
           <p className="text-sm text-red-700">{importState.error}</p>
@@ -71,7 +71,7 @@ export function BudgetBreakdownActions({
       </form>
       <Link
         href={`/events/${eventId}/template` as Route}
-        className="inline-flex rounded-full border border-border px-5 py-3 text-sm font-semibold hover:border-accent hover:text-accent"
+        className="inline-flex h-10 shrink-0 items-center justify-center rounded-full border border-border px-4 text-sm font-semibold hover:border-accent hover:text-accent"
       >
         Download Template
       </Link>
