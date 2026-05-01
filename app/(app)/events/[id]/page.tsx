@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import type { Route } from "next";
 import Link from "next/link";
 import { BudgetItemTable } from "@/components/budget-item-table";
+import { CurrencyViewer } from "@/components/currency-viewer";
 import { DeleteEventButton } from "@/components/delete-event-button";
 import { EventCharts } from "@/components/event-charts";
 import { EventFilters } from "@/components/event-filters";
@@ -56,6 +57,15 @@ export default async function EventDetailPage({ params, searchParams }: EventDet
   }
 
   const event = mapEventWithItems(data);
+  const currencyPreviewMetrics = [
+    { label: "Budget cap", amount: event.budgetCap },
+    { label: "Estimated items", amount: event.estimatedTotal },
+    { label: "Actual", amount: event.actualTotal },
+    { label: "Remaining", amount: event.remainingBudget },
+    { label: "Paid", amount: event.paidTotal },
+    { label: "Pending", amount: event.pendingTotal },
+    { label: "Variance", amount: event.variance }
+  ];
   const eventSummaries = [
     { label: "Budget cap", value: `$${event.budgetCap.toLocaleString()}`, helper: "Manual event spending limit" },
     { label: "Estimated items", value: `$${event.estimatedTotal.toLocaleString()}`, helper: "Sum of all estimated line items" },
@@ -114,6 +124,7 @@ export default async function EventDetailPage({ params, searchParams }: EventDet
             <div className="rounded-2xl bg-shell px-4 py-3 text-sm">
               Currency: <span className="font-semibold">{event.currency}</span>
             </div>
+            <CurrencyViewer baseCurrency={event.currency} metrics={currencyPreviewMetrics} />
             <Link
               href={`/events/${event.id}/settings` as Route}
               className="inline-flex items-center justify-center rounded-full border border-border px-5 py-3 text-sm font-semibold hover:border-accent hover:text-accent"
