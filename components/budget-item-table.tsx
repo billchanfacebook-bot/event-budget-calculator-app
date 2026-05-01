@@ -1,15 +1,23 @@
 import type { Route } from "next";
 import Link from "next/link";
+import { BudgetBreakdownActions } from "@/components/budget-breakdown-actions";
+import type { BudgetCategoryRecord, FormState } from "@/types";
 import type { BudgetItemRecord } from "@/types";
 
 export function BudgetItemTable({
   items,
   eventId,
-  helperText
+  helperText,
+  categories,
+  quickAddAction,
+  importAction
 }: {
   items: BudgetItemRecord[];
   eventId: string;
   helperText?: string;
+  categories: BudgetCategoryRecord[];
+  quickAddAction: (state: FormState, formData: FormData) => Promise<FormState>;
+  importAction: (state: FormState, formData: FormData) => Promise<FormState>;
 }) {
   return (
     <section className="rounded-[2rem] border border-white/60 bg-card p-6 shadow-soft">
@@ -19,12 +27,12 @@ export function BudgetItemTable({
           <h2 className="mt-2 text-2xl font-semibold">Budget breakdown</h2>
           {helperText ? <p className="mt-2 text-sm text-ink/60">{helperText}</p> : null}
         </div>
-        <Link
-          href={`/events/${eventId}/items/new` as Route}
-          className="inline-flex rounded-full bg-accent px-5 py-3 text-sm font-semibold text-white hover:opacity-90"
-        >
-          Add Item
-        </Link>
+        <BudgetBreakdownActions
+          eventId={eventId}
+          categories={categories}
+          quickAddAction={quickAddAction}
+          importAction={importAction}
+        />
       </div>
 
       {items.length === 0 ? (

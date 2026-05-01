@@ -7,6 +7,8 @@ import { ExportLink } from "@/components/export-link";
 import { EventNotesForm } from "@/components/forms/event-notes-form";
 import { SummaryCard } from "@/components/summary-card";
 import { updateEventNotesAction } from "@/app/actions/events";
+import { createBudgetItemAction, importBudgetItemsAction } from "@/app/actions/budget-items";
+import { getBudgetCategories } from "@/lib/budget-categories";
 import {
   buildCategoryComparisonData,
   buildCategorySpendData,
@@ -24,13 +26,16 @@ export default async function EventDetailPage({ params, searchParams }: EventDet
   const { id } = await params;
   const { category = "", status = "", sort = "category_asc" } = await searchParams;
   const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("events")
-    .select(
-      "id, name, event_date, location, attendee_count, status, currency, budget_cap, notes, budget_items(id, item_name, vendor, estimated_cost, actual_cost, payment_status, due_date, notes, budget_categories(name))"
-    )
-    .eq("id", id)
-    .single();
+  const [{ data, error }, categories] = await Promise.all([
+    supabase
+      .from("events")
+      .select(
+        "id, name, event_date, location, attendee_count, status, currency, budget_cap, notes, budget_items(id, item_name, vendor, estimated_cost, actual_cost, payment_status, due_date, notes, budget_categories(name))"
+      )
+      .eq("id", id)
+      .single(),
+    getBudgetCategories()
+  ]);
 
   if (error || !data) {
     notFound();
@@ -46,7 +51,7 @@ export default async function EventDetailPage({ params, searchParams }: EventDet
     { label: "Pending", value: `$${event.pendingTotal.toLocaleString()}`, helper: "Pending or partially paid" },
     { label: "Variance", value: `$${event.variance.toLocaleString()}`, helper: "Positive means actual spend is over the cap" }
   ];
-  const categories = Array.from(new Set(event.items.map((item) => item.categoryName))).sort((a, b) =>
+  const filterCategories = Array.from(new Set(event.items.map((item) => item.categoryName))).sort((a, b) =>
     a.localeCompare(b)
   );
   const filteredItems = event.items.filter((item) => {
@@ -67,6 +72,8 @@ export default async function EventDetailPage({ params, searchParams }: EventDet
       ? `${sortedItems.length} filtered item(s). ${activeFilters.join(" | ")}`
       : `${event.items.length} total item(s) across this event.`;
   const updateNotes = updateEventNotesAction.bind(null, event.id);
+  const quickAddAction = createBudgetItemAction.bind(null, event.id);
+  const importAction = importBudgetItemsAction.bind(null, event.id);
 
   return (
     <div className="space-y-6">
@@ -99,7 +106,7 @@ export default async function EventDetailPage({ params, searchParams }: EventDet
 
       <EventFilters
         eventId={event.id}
-        categories={categories}
+        categories={filterCategories}
         selectedCategory={category}
         selectedStatus={status}
         selectedSort={sort}
@@ -115,7 +122,14 @@ export default async function EventDetailPage({ params, searchParams }: EventDet
         </div>
       </section>
 
-      <BudgetItemTable items={sortedItems} eventId={event.id} helperText={helperText} />
+      <BudgetItemTable
+        items={sortedItems}
+        eventId={event.id}
+        helperText={helperText}
+        categories={categories}
+        quickAddAction={quickAddAction}
+        importAction={importAction}
+      />
     </div>
   );
 }

@@ -23,5 +23,10 @@
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-  "exclude": ["node_modules", "event-budget-calculator-netlify-upload"]
+  "exclude": [
+    "node_modules",
+    "event-budget-calculator-netlify-upload",
+    "event-budget-calculator-updated-files-only",
+    "event-budget-calculator-excel-export-update"
+  ]
 }
