@@ -179,6 +179,20 @@ export function buildCategorySpendData(items: BudgetItemRecord[]) {
   }));
 }
 
+export function buildCategoryProjectedSpendData(items: BudgetItemRecord[]) {
+  const grouped = new Map<string, number>();
+
+  items.forEach((item) => {
+    const projectedCost = item.actualCost > 0 ? item.actualCost : item.estimatedCost;
+    grouped.set(item.categoryName, (grouped.get(item.categoryName) ?? 0) + projectedCost);
+  });
+
+  return Array.from(grouped.entries()).map(([name, value]) => ({
+    name,
+    value
+  }));
+}
+
 export function buildCategoryComparisonData(items: BudgetItemRecord[]) {
   const grouped = new Map<string, { estimated: number; actual: number }>();
 

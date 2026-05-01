@@ -54,12 +54,7 @@ export default async function EventDetailPage({ params, searchParams }: EventDet
     { label: "Remaining", value: `$${event.remainingBudget.toLocaleString()}`, helper: "Available before reaching budget cap" },
     { label: "Paid", value: `$${event.paidTotal.toLocaleString()}`, helper: "Fully settled items" },
     { label: "Pending", value: `$${event.pendingTotal.toLocaleString()}`, helper: "Pending or partially paid" },
-    {
-      label: "Variance",
-      value: `$${event.variance.toLocaleString()}`,
-      helper: "Positive means actual spend is over the cap",
-      valueClassName: event.variance < 0 ? "text-red-600" : ""
-    }
+    { label: "Variance", value: `$${event.variance.toLocaleString()}`, helper: "Positive means actual spend is over the cap" }
   ];
   const filterCategories = Array.from(new Set(event.items.map((item) => item.categoryName))).sort((a, b) =>
     a.localeCompare(b)

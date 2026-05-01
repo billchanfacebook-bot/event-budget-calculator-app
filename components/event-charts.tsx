@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import {
   Bar,
   BarChart,
@@ -20,6 +21,10 @@ type EventChartsProps = {
     name: string;
     value: number;
   }>;
+  categoryProjectedSpendData: Array<{
+    name: string;
+    value: number;
+  }>;
   categoryComparisonData: Array<{
     name: string;
     estimated: number;
@@ -31,8 +36,15 @@ function currency(value: number) {
   return `$${value.toLocaleString()}`;
 }
 
-export function EventCharts({ categorySpendData, categoryComparisonData }: EventChartsProps) {
-  const hasSpendData = categorySpendData.some((entry) => entry.value > 0);
+export function EventCharts({
+  categorySpendData,
+  categoryProjectedSpendData,
+  categoryComparisonData
+}: EventChartsProps) {
+  const [spendMode, setSpendMode] = useState<"actual" | "estimated">("actual");
+  const activeSpendData = spendMode === "actual" ? categorySpendData : categoryProjectedSpendData;
+  const hasSpendData = activeSpendData.some((entry) => entry.value > 0);
+  const activeSpendLabel = spendMode === "actual" ? "Actual spend" : "Estimated spend";
   const hasComparisonData = categoryComparisonData.some(
     (entry) => entry.estimated > 0 || entry.actual > 0
   );
@@ -44,26 +56,46 @@ export function EventCharts({ categorySpendData, categoryComparisonData }: Event
     <section className="rounded-[2rem] border border-white/60 bg-card p-6 shadow-soft">
       <p className="text-sm uppercase tracking-[0.3em] text-moss">Analytics</p>
       <h2 className="mt-3 text-2xl font-semibold">Budget vs actual</h2>
-      <div className="mt-6 grid gap-4 xl:grid-cols-3">
+      <div className="mt-6 grid gap-4 2xl:grid-cols-[0.9fr_1.35fr_1fr]">
         <div className="rounded-[1.5rem] bg-shell p-5">
-          <div className="mb-5 flex items-center justify-between">
+          <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
             <span className="text-sm font-medium">Category spend share</span>
-            <span className="text-xs text-ink/50">Actual spend</span>
+            <div className="inline-flex rounded-full border border-border bg-white p-1 text-xs font-semibold">
+              <button
+                type="button"
+                onClick={() => setSpendMode("actual")}
+                className={`rounded-full px-3 py-1.5 ${
+                  spendMode === "actual" ? "bg-accent text-white" : "text-ink/55 hover:text-accent"
+                }`}
+              >
+                Actual
+              </button>
+              <button
+                type="button"
+                onClick={() => setSpendMode("estimated")}
+                className={`rounded-full px-3 py-1.5 ${
+                  spendMode === "estimated" ? "bg-accent text-white" : "text-ink/55 hover:text-accent"
+                }`}
+              >
+                Estimated
+              </button>
+            </div>
           </div>
           {hasSpendData ? (
-            <>
-              <div className="h-64">
+            <div className="grid gap-4 lg:grid-cols-[0.95fr_1.05fr] 2xl:grid-cols-1">
+              <p className="text-xs text-ink/50 lg:col-span-2 2xl:col-span-1">{activeSpendLabel}</p>
+              <div className="h-60">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
-                      data={categorySpendData}
+                      data={activeSpendData}
                       dataKey="value"
                       nameKey="name"
                       innerRadius={52}
                       outerRadius={88}
                       paddingAngle={3}
                     >
-                      {categorySpendData.map((entry, index) => (
+                      {activeSpendData.map((entry, index) => (
                         <Cell key={entry.name} fill={chartColors[index % chartColors.length]} />
                       ))}
                     </Pie>
@@ -71,8 +103,8 @@ export function EventCharts({ categorySpendData, categoryComparisonData }: Event
                   </PieChart>
                 </ResponsiveContainer>
               </div>
-              <div className="mt-4 grid gap-2 text-sm text-ink/65">
-                {categorySpendData.map((entry, index) => (
+              <div className="grid content-start gap-2 text-sm text-ink/65">
+                {activeSpendData.map((entry, index) => (
                   <div key={entry.name} className="flex items-center justify-between rounded-xl bg-white px-3 py-2">
                     <div className="flex items-center gap-2">
                       <span
@@ -85,7 +117,7 @@ export function EventCharts({ categorySpendData, categoryComparisonData }: Event
                   </div>
                 ))}
               </div>
-            </>
+            </div>
           ) : (
             <div className="flex h-64 items-center justify-center rounded-[1.25rem] border border-dashed border-border bg-white text-sm text-ink/45">
               Category spend will appear after this event has recorded actual costs.
@@ -99,7 +131,7 @@ export function EventCharts({ categorySpendData, categoryComparisonData }: Event
             <span className="text-xs text-ink/50">Variance spotlight</span>
           </div>
           {hasComparisonData ? (
-            <div className="h-64">
+            <div className="h-72">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={categoryComparisonData} barGap={10}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e6ddd2" />
@@ -124,7 +156,7 @@ export function EventCharts({ categorySpendData, categoryComparisonData }: Event
             <span className="text-xs text-ink/50">Estimated and actual sums</span>
           </div>
           {hasComparisonData ? (
-            <div className="grid gap-2 text-sm text-ink/65">
+            <div className="grid gap-2 text-sm text-ink/65 sm:grid-cols-2 2xl:grid-cols-1">
               {categoryTotals.map((entry) => (
                 <div key={entry.name} className="rounded-xl bg-white px-3 py-3">
                   <div className="flex items-center justify-between gap-3">
