@@ -31,15 +31,22 @@ export default async function EventDetailPage({ params, searchParams }: EventDet
   const { id } = await params;
   const { category = "", status = "", sort = "category_asc" } = await searchParams;
   const supabase = await createClient();
-  const [{ data, error }, categories] = await Promise.all([
+  const [
+    { data, error },
+    categories,
+    {
+      data: { user }
+    }
+  ] = await Promise.all([
     supabase
       .from("events")
       .select(
-        "id, name, event_date, location, attendee_count, status, currency, budget_cap, notes, budget_items(id, item_name, vendor, estimated_cost, actual_cost, payment_status, due_date, notes, budget_categories(name))"
+        "id, name, event_date, location, attendee_count, status, currency, budget_cap, notes, created_by, budget_items(id, item_name, vendor, estimated_cost, actual_cost, payment_status, due_date, notes, budget_categories(name))"
       )
       .eq("id", id)
       .single(),
-    getBudgetCategories()
+    getBudgetCategories(),
+    supabase.auth.getUser()
   ]);
 
   if (error || !data) {
@@ -54,7 +61,12 @@ export default async function EventDetailPage({ params, searchParams }: EventDet
     { label: "Remaining", value: `$${event.remainingBudget.toLocaleString()}`, helper: "Available before reaching budget cap" },
     { label: "Paid", value: `$${event.paidTotal.toLocaleString()}`, helper: "Fully settled items" },
     { label: "Pending", value: `$${event.pendingTotal.toLocaleString()}`, helper: "Pending or partially paid" },
-    { label: "Variance", value: `$${event.variance.toLocaleString()}`, helper: "Positive means actual spend is over the cap" }
+    {
+      label: "Variance",
+      value: `$${event.variance.toLocaleString()}`,
+      helper: "Positive means actual spend is over the cap",
+      valueClassName: event.variance < 0 ? "text-red-600" : ""
+    }
   ];
   const filterCategories = Array.from(new Set(event.items.map((item) => item.categoryName))).sort((a, b) =>
     a.localeCompare(b)
@@ -81,6 +93,7 @@ export default async function EventDetailPage({ params, searchParams }: EventDet
   const quickAddAction = createBudgetItemAction.bind(null, event.id);
   const importAction = importBudgetItemsAction.bind(null, event.id);
   const batchDeleteAction = batchDeleteBudgetItemsAction.bind(null, event.id);
+  const canDeleteEvent = user?.id === data.created_by;
 
   return (
     <div className="space-y-6">
@@ -100,7 +113,7 @@ export default async function EventDetailPage({ params, searchParams }: EventDet
               Currency: <span className="font-semibold">{event.currency}</span>
             </div>
             <ExportLink href={`/events/${event.id}/export`} label="Export Excel" />
-            <DeleteEventButton eventId={event.id} />
+            {canDeleteEvent ? <DeleteEventButton eventId={event.id} /> : null}
           </div>
         </div>
       </section>

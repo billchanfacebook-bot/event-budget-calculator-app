@@ -82,6 +82,13 @@ export type PaymentRecord = {
   createdAt: string;
 };
 
+export type EventCollaboratorRecord = {
+  id: string;
+  email: string;
+  role: string;
+  createdAt: string;
+};
+
 export type EventSummaryMetrics = {
   budgetCap: number;
   estimatedTotal: number;
