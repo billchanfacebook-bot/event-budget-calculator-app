@@ -84,6 +84,21 @@ export function EventForm({
             <option value="CNY">CNY</option>
           </select>
         </div>
+        <div className="space-y-2">
+          <label htmlFor="budgetCap" className="text-sm font-medium">
+            Budget cap
+          </label>
+          <input
+            id="budgetCap"
+            name="budgetCap"
+            type="number"
+            min="0"
+            step="0.01"
+            defaultValue={defaults?.budgetCap ?? 0}
+            placeholder="300000"
+            required
+          />
+        </div>
         <div className="space-y-2 md:col-span-2">
           <label htmlFor="notes" className="text-sm font-medium">
             Notes

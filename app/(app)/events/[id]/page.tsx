@@ -10,23 +10,24 @@ import { updateEventNotesAction } from "@/app/actions/events";
 import {
   buildCategoryComparisonData,
   buildCategorySpendData,
-  mapEventWithItems
+  mapEventWithItems,
+  sortBudgetItems
 } from "@/lib/events";
 import { createClient } from "@/lib/supabase/server";
 
 type EventDetailPageProps = {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ category?: string; status?: string }>;
+  searchParams: Promise<{ category?: string; status?: string; sort?: string }>;
 };
 
 export default async function EventDetailPage({ params, searchParams }: EventDetailPageProps) {
   const { id } = await params;
-  const { category = "", status = "" } = await searchParams;
+  const { category = "", status = "", sort = "category_asc" } = await searchParams;
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("events")
     .select(
-      "id, name, event_date, location, attendee_count, status, currency, notes, budget_items(id, item_name, vendor, estimated_cost, actual_cost, payment_status, due_date, notes, budget_categories(name))"
+      "id, name, event_date, location, attendee_count, status, currency, budget_cap, notes, budget_items(id, item_name, vendor, estimated_cost, actual_cost, payment_status, due_date, notes, budget_categories(name))"
     )
     .eq("id", id)
     .single();
@@ -37,12 +38,13 @@ export default async function EventDetailPage({ params, searchParams }: EventDet
 
   const event = mapEventWithItems(data);
   const eventSummaries = [
-    { label: "Estimated", value: `$${event.estimatedTotal.toLocaleString()}`, helper: "Original budget target" },
+    { label: "Budget cap", value: `$${event.budgetCap.toLocaleString()}`, helper: "Manual event spending limit" },
+    { label: "Estimated items", value: `$${event.estimatedTotal.toLocaleString()}`, helper: "Sum of all estimated line items" },
     { label: "Actual", value: `$${event.actualTotal.toLocaleString()}`, helper: "Recorded spend to date" },
-    { label: "Remaining", value: `$${event.remainingBudget.toLocaleString()}`, helper: "Available before budget cap" },
+    { label: "Remaining", value: `$${event.remainingBudget.toLocaleString()}`, helper: "Available before reaching budget cap" },
     { label: "Paid", value: `$${event.paidTotal.toLocaleString()}`, helper: "Fully settled items" },
     { label: "Pending", value: `$${event.pendingTotal.toLocaleString()}`, helper: "Pending or partially paid" },
-    { label: "Variance", value: `$${event.variance.toLocaleString()}`, helper: "Positive means over budget" }
+    { label: "Variance", value: `$${event.variance.toLocaleString()}`, helper: "Positive means actual spend is over the cap" }
   ];
   const categories = Array.from(new Set(event.items.map((item) => item.categoryName))).sort((a, b) =>
     a.localeCompare(b)
@@ -52,15 +54,17 @@ export default async function EventDetailPage({ params, searchParams }: EventDet
     const matchesStatus = status ? item.paymentStatus === status : true;
     return matchesCategory && matchesStatus;
   });
-  const categorySpendData = buildCategorySpendData(filteredItems);
-  const categoryComparisonData = buildCategoryComparisonData(filteredItems);
+  const sortedItems = sortBudgetItems(filteredItems, sort);
+  const categorySpendData = buildCategorySpendData(sortedItems);
+  const categoryComparisonData = buildCategoryComparisonData(sortedItems);
   const activeFilters = [
     category ? `Category: ${category}` : "",
-    status ? `Status: ${status.replaceAll("_", " ")}` : ""
+    status ? `Status: ${status.replaceAll("_", " ")}` : "",
+    sort ? `Sort: ${sort.replaceAll("_", " ")}` : ""
   ].filter(Boolean);
   const helperText =
     activeFilters.length > 0
-      ? `${filteredItems.length} filtered item(s). ${activeFilters.join(" | ")}`
+      ? `${sortedItems.length} filtered item(s). ${activeFilters.join(" | ")}`
       : `${event.items.length} total item(s) across this event.`;
   const updateNotes = updateEventNotesAction.bind(null, event.id);
 
@@ -98,6 +102,7 @@ export default async function EventDetailPage({ params, searchParams }: EventDet
         categories={categories}
         selectedCategory={category}
         selectedStatus={status}
+        selectedSort={sort}
       />
 
       <section className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
@@ -110,7 +115,7 @@ export default async function EventDetailPage({ params, searchParams }: EventDet
         </div>
       </section>
 
-      <BudgetItemTable items={filteredItems} eventId={event.id} helperText={helperText} />
+      <BudgetItemTable items={sortedItems} eventId={event.id} helperText={helperText} />
     </div>
   );
 }

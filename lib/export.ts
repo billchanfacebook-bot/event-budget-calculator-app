@@ -20,7 +20,7 @@ export function buildCsv(columns: string[], rows: Array<Array<string | number | 
 }
 
 export function createCsvResponse(filename: string, csv: string) {
-  return new Response(csv, {
+  return new Response(`\uFEFF${csv}`, {
     headers: {
       "Content-Type": "text/csv; charset=utf-8",
       "Content-Disposition": `attachment; filename="${filename}"`,
@@ -45,6 +45,7 @@ export function buildEventsSummaryCsv(events: EventWithItemsRecord[]) {
     "Status",
     "Currency",
     "Attendee Count",
+    "Budget Cap",
     "Estimated Total",
     "Actual Total",
     "Remaining Budget",
@@ -61,6 +62,7 @@ export function buildEventsSummaryCsv(events: EventWithItemsRecord[]) {
     event.status,
     event.currency,
     event.attendeeCount,
+    event.budgetCap,
     event.estimatedTotal,
     event.actualTotal,
     event.remainingBudget,

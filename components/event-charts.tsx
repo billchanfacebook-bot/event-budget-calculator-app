@@ -36,12 +36,15 @@ export function EventCharts({ categorySpendData, categoryComparisonData }: Event
   const hasComparisonData = categoryComparisonData.some(
     (entry) => entry.estimated > 0 || entry.actual > 0
   );
+  const categoryTotals = [...categoryComparisonData].sort(
+    (left, right) => right.estimated + right.actual - (left.estimated + left.actual)
+  );
 
   return (
     <section className="rounded-[2rem] border border-white/60 bg-card p-6 shadow-soft">
       <p className="text-sm uppercase tracking-[0.3em] text-moss">Analytics</p>
       <h2 className="mt-3 text-2xl font-semibold">Budget vs actual</h2>
-      <div className="mt-6 grid gap-4 lg:grid-cols-2">
+      <div className="mt-6 grid gap-4 xl:grid-cols-3">
         <div className="rounded-[1.5rem] bg-shell p-5">
           <div className="mb-5 flex items-center justify-between">
             <span className="text-sm font-medium">Category spend share</span>
@@ -111,6 +114,41 @@ export function EventCharts({ categorySpendData, categoryComparisonData }: Event
           ) : (
             <div className="flex h-64 items-center justify-center rounded-[1.25rem] border border-dashed border-border bg-white text-sm text-ink/45">
               Estimated versus actual comparison appears after line items are added.
+            </div>
+          )}
+        </div>
+
+        <div className="rounded-[1.5rem] bg-shell p-5">
+          <div className="mb-5 flex items-center justify-between">
+            <span className="text-sm font-medium">Category totals</span>
+            <span className="text-xs text-ink/50">Estimated and actual sums</span>
+          </div>
+          {hasComparisonData ? (
+            <div className="grid gap-2 text-sm text-ink/65">
+              {categoryTotals.map((entry) => (
+                <div key={entry.name} className="rounded-xl bg-white px-3 py-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="font-medium text-ink">{entry.name}</span>
+                    <span className="text-xs text-ink/45">
+                      Diff {currency(entry.actual - entry.estimated)}
+                    </span>
+                  </div>
+                  <div className="mt-2 grid grid-cols-2 gap-3 text-xs sm:text-sm">
+                    <div>
+                      <p className="text-ink/45">Estimated</p>
+                      <p className="mt-1 font-semibold text-accent">{currency(entry.estimated)}</p>
+                    </div>
+                    <div>
+                      <p className="text-ink/45">Actual</p>
+                      <p className="mt-1 font-semibold text-moss">{currency(entry.actual)}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="flex h-64 items-center justify-center rounded-[1.25rem] border border-dashed border-border bg-white text-sm text-ink/45">
+              Category totals will appear once estimated or actual values are available.
             </div>
           )}
         </div>

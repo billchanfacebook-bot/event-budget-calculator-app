@@ -13,7 +13,7 @@ export default async function EventSettingsPage({ params }: EventSettingsPagePro
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("events")
-    .select("id, name, event_date, location, attendee_count, status, currency, notes")
+    .select("id, name, event_date, location, attendee_count, status, currency, budget_cap, notes")
     .eq("id", id)
     .single();
 
@@ -43,6 +43,7 @@ export default async function EventSettingsPage({ params }: EventSettingsPagePro
           attendeeCount: data.attendee_count ?? 0,
           status: data.status,
           currency: data.currency,
+          budgetCap: Number(data.budget_cap ?? 0),
           notes: data.notes ?? ""
         }}
         action={action}

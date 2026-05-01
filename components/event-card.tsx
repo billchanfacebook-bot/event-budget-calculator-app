@@ -21,8 +21,8 @@ export function EventCard({ event }: { event: EventRecord }) {
       </div>
       <div className="mt-6 grid grid-cols-2 gap-3 rounded-2xl bg-shell p-4 text-sm">
         <div>
-          <p className="text-ink/55">Planned</p>
-          <p className="mt-1 font-semibold">${event.estimatedTotal.toLocaleString()}</p>
+          <p className="text-ink/55">Budget cap</p>
+          <p className="mt-1 font-semibold">${event.budgetCap.toLocaleString()}</p>
         </div>
         <div>
           <p className="text-ink/55">Actual</p>

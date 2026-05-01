@@ -20,7 +20,7 @@ export default async function DashboardPage() {
   const { data, error } = await supabase
     .from("events")
     .select(
-      "id, name, event_date, location, attendee_count, status, currency, notes, budget_items(id, item_name, vendor, estimated_cost, actual_cost, payment_status, due_date, notes, budget_categories(name))"
+      "id, name, event_date, location, attendee_count, status, currency, budget_cap, notes, budget_items(id, item_name, vendor, estimated_cost, actual_cost, payment_status, due_date, notes, budget_categories(name))"
     )
     .order("event_date", { ascending: true });
 
@@ -29,7 +29,7 @@ export default async function DashboardPage() {
   }
 
   const events = (data ?? []).map(mapEventWithItems);
-  const plannedBudget = events.reduce((sum, event) => sum + event.estimatedTotal, 0);
+  const plannedBudget = events.reduce((sum, event) => sum + event.budgetCap, 0);
   const actualSpend = events.reduce((sum, event) => sum + event.actualTotal, 0);
   const outstanding = events.reduce((sum, event) => sum + event.pendingTotal, 0);
   const overBudget = events
@@ -37,7 +37,7 @@ export default async function DashboardPage() {
     .reduce((sum, event) => sum + event.variance, 0);
 
   const dashboardSummary = [
-    { label: "Planned budget", value: currency(plannedBudget), helper: "Across all current events" },
+    { label: "Budget caps", value: currency(plannedBudget), helper: "Manual caps across all current events" },
     { label: "Actual spend", value: currency(actualSpend), helper: "Updated from live event data" },
     { label: "Outstanding", value: currency(outstanding), helper: "Pending and partially paid items" },
     { label: "Over budget", value: currency(overBudget), helper: "Total overspend across current events" }

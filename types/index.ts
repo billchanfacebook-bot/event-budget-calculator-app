@@ -17,6 +17,7 @@ export type EventFormValues = {
   attendeeCount: number;
   status: string;
   currency: string;
+  budgetCap: number;
   notes: string;
 };
 
@@ -28,6 +29,7 @@ export type EventRecord = {
   attendeeCount: number;
   status: string;
   currency: string;
+  budgetCap: number;
   notes: string;
   estimatedTotal: number;
   actualTotal: number;
@@ -81,6 +83,7 @@ export type PaymentRecord = {
 };
 
 export type EventSummaryMetrics = {
+  budgetCap: number;
   estimatedTotal: number;
   actualTotal: number;
   paidTotal: number;

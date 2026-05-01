@@ -17,11 +17,15 @@ create table if not exists public.events (
   attendee_count integer not null default 0,
   status text not null default 'draft' check (status in ('draft', 'active', 'completed', 'archived')),
   currency text not null default 'HKD',
+  budget_cap numeric(12, 2) not null default 0,
   notes text,
   created_by uuid not null references public.profiles(id) on delete cascade,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
+alter table public.events
+add column if not exists budget_cap numeric(12, 2) not null default 0;
 
 create table if not exists public.budget_categories (
   id uuid primary key default gen_random_uuid(),

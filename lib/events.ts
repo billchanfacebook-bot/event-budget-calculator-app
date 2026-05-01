@@ -15,6 +15,7 @@ type EventQueryRow = {
   attendee_count: number | null;
   status: string;
   currency: string;
+  budget_cap: number | string | null;
   notes: string | null;
   budget_items?: Array<{
     id: string;
@@ -38,7 +39,7 @@ function formatDate(value: string | null) {
   return value;
 }
 
-export function calculateEventMetrics(items: BudgetItemRecord[]): EventSummaryMetrics {
+export function calculateEventMetrics(items: BudgetItemRecord[], budgetCap: number): EventSummaryMetrics {
   const estimatedTotal = items.reduce((sum, item) => sum + item.estimatedCost, 0);
   const actualTotal = items.reduce((sum, item) => sum + item.actualCost, 0);
   const paidTotal = items
@@ -47,15 +48,16 @@ export function calculateEventMetrics(items: BudgetItemRecord[]): EventSummaryMe
   const pendingTotal = items
     .filter((item) => item.paymentStatus !== "paid" && item.paymentStatus !== "cancelled")
     .reduce((sum, item) => sum + item.actualCost, 0);
-  const remainingBudget = estimatedTotal - actualTotal;
+  const remainingBudget = budgetCap - actualTotal;
 
   return {
+    budgetCap,
     estimatedTotal,
     actualTotal,
     paidTotal,
     pendingTotal,
     remainingBudget,
-    variance: actualTotal - estimatedTotal
+    variance: actualTotal - budgetCap
   };
 }
 
@@ -79,7 +81,7 @@ export function mapBudgetItem(item: NonNullable<EventQueryRow["budget_items"]>[n
 
 export function mapEvent(row: EventQueryRow): EventRecord {
   const items = (row.budget_items ?? []).map((item) => mapBudgetItem(item, row.id));
-  const metrics = calculateEventMetrics(items);
+  const metrics = calculateEventMetrics(items, toNumber(row.budget_cap));
 
   return {
     id: row.id,
@@ -89,6 +91,7 @@ export function mapEvent(row: EventQueryRow): EventRecord {
     attendeeCount: row.attendee_count ?? 0,
     status: row.status,
     currency: row.currency,
+    budgetCap: metrics.budgetCap,
     notes: row.notes ?? "",
     estimatedTotal: metrics.estimatedTotal,
     actualTotal: metrics.actualTotal
@@ -97,7 +100,7 @@ export function mapEvent(row: EventQueryRow): EventRecord {
 
 export function mapEventWithItems(row: EventQueryRow): EventWithItemsRecord {
   const items = (row.budget_items ?? []).map((item) => mapBudgetItem(item, row.id));
-  const metrics = calculateEventMetrics(items);
+  const metrics = calculateEventMetrics(items, toNumber(row.budget_cap));
 
   return {
     ...mapEvent(row),
@@ -154,11 +157,11 @@ export function buildStatusSpendData(
 }
 
 export function buildEventSpendComparisonData(
-  events: Array<Pick<EventWithItemsRecord, "name" | "estimatedTotal" | "actualTotal">>
+  events: Array<Pick<EventWithItemsRecord, "name" | "budgetCap" | "actualTotal">>
 ) {
   return events.map((event) => ({
     name: event.name.length > 18 ? `${event.name.slice(0, 18)}...` : event.name,
-    planned: event.estimatedTotal,
+    planned: event.budgetCap,
     actual: event.actualTotal
   }));
 }
@@ -191,4 +194,50 @@ export function buildCategoryComparisonData(items: BudgetItemRecord[]) {
     estimated: value.estimated,
     actual: value.actual
   }));
+}
+
+export function sortBudgetItems(items: BudgetItemRecord[], sortKey: string) {
+  const sorted = [...items];
+
+  const compareText = (a: string, b: string) => a.localeCompare(b, undefined, { sensitivity: "base" });
+  const compareNumber = (a: number, b: number) => a - b;
+  const compareDate = (a: string, b: string) => {
+    if (a === "TBC" && b === "TBC") return 0;
+    if (a === "TBC") return 1;
+    if (b === "TBC") return -1;
+    return new Date(a).getTime() - new Date(b).getTime();
+  };
+
+  sorted.sort((left, right) => {
+    switch (sortKey) {
+      case "item_asc":
+        return compareText(left.itemName, right.itemName);
+      case "item_desc":
+        return compareText(right.itemName, left.itemName);
+      case "category_asc":
+        return compareText(left.categoryName, right.categoryName);
+      case "category_desc":
+        return compareText(right.categoryName, left.categoryName);
+      case "estimated_asc":
+        return compareNumber(left.estimatedCost, right.estimatedCost);
+      case "estimated_desc":
+        return compareNumber(right.estimatedCost, left.estimatedCost);
+      case "actual_asc":
+        return compareNumber(left.actualCost, right.actualCost);
+      case "actual_desc":
+        return compareNumber(right.actualCost, left.actualCost);
+      case "due_asc":
+        return compareDate(left.dueDate, right.dueDate);
+      case "due_desc":
+        return compareDate(right.dueDate, left.dueDate);
+      case "status_asc":
+        return compareText(left.paymentStatus, right.paymentStatus);
+      case "status_desc":
+        return compareText(right.paymentStatus, left.paymentStatus);
+      default:
+        return 0;
+    }
+  });
+
+  return sorted;
 }

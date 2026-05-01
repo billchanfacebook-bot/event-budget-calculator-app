@@ -13,6 +13,7 @@ const eventSchema = z.object({
   attendeeCount: z.coerce.number().int().min(0, "Attendee count cannot be negative."),
   status: z.enum(["draft", "active", "completed", "archived"]),
   currency: z.string().trim().min(1, "Currency is required."),
+  budgetCap: z.coerce.number().min(0, "Budget cap cannot be negative."),
   notes: z.string().optional()
 });
 
@@ -44,6 +45,7 @@ export async function createEventAction(
     attendeeCount: formData.get("attendeeCount"),
     status: formData.get("status"),
     currency: formData.get("currency"),
+    budgetCap: formData.get("budgetCap"),
     notes: formData.get("notes")
   });
 
@@ -60,6 +62,7 @@ export async function createEventAction(
     attendee_count: parsed.data.attendeeCount,
     status: parsed.data.status,
     currency: parsed.data.currency,
+    budget_cap: parsed.data.budgetCap,
     notes: normalizeOptionalString(parsed.data.notes),
     created_by: user.id
   };
@@ -98,6 +101,7 @@ export async function updateEventAction(
     attendeeCount: formData.get("attendeeCount"),
     status: formData.get("status"),
     currency: formData.get("currency"),
+    budgetCap: formData.get("budgetCap"),
     notes: formData.get("notes")
   });
 
@@ -116,6 +120,7 @@ export async function updateEventAction(
       attendee_count: parsed.data.attendeeCount,
       status: parsed.data.status,
       currency: parsed.data.currency,
+      budget_cap: parsed.data.budgetCap,
       notes: normalizeOptionalString(parsed.data.notes)
     })
     .eq("id", eventId)
