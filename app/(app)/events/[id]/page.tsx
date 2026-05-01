@@ -15,6 +15,7 @@ import {
 import { getBudgetCategories } from "@/lib/budget-categories";
 import {
   buildCategoryComparisonData,
+  buildCategoryProjectedSpendData,
   buildCategorySpendData,
   mapEventWithItems,
   sortBudgetItems
@@ -53,7 +54,12 @@ export default async function EventDetailPage({ params, searchParams }: EventDet
     { label: "Remaining", value: `$${event.remainingBudget.toLocaleString()}`, helper: "Available before reaching budget cap" },
     { label: "Paid", value: `$${event.paidTotal.toLocaleString()}`, helper: "Fully settled items" },
     { label: "Pending", value: `$${event.pendingTotal.toLocaleString()}`, helper: "Pending or partially paid" },
-    { label: "Variance", value: `$${event.variance.toLocaleString()}`, helper: "Positive means actual spend is over the cap" }
+    {
+      label: "Variance",
+      value: `$${event.variance.toLocaleString()}`,
+      helper: "Positive means actual spend is over the cap",
+      valueClassName: event.variance < 0 ? "text-red-600" : ""
+    }
   ];
   const filterCategories = Array.from(new Set(event.items.map((item) => item.categoryName))).sort((a, b) =>
     a.localeCompare(b)
@@ -65,6 +71,7 @@ export default async function EventDetailPage({ params, searchParams }: EventDet
   });
   const sortedItems = sortBudgetItems(filteredItems, sort);
   const categorySpendData = buildCategorySpendData(sortedItems);
+  const categoryProjectedSpendData = buildCategoryProjectedSpendData(sortedItems);
   const categoryComparisonData = buildCategoryComparisonData(sortedItems);
   const activeFilters = [
     category ? `Category: ${category}` : "",
@@ -117,12 +124,13 @@ export default async function EventDetailPage({ params, searchParams }: EventDet
         selectedSort={sort}
       />
 
-      <section className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
+      <section className="space-y-6">
         <EventCharts
           categorySpendData={categorySpendData}
+          categoryProjectedSpendData={categoryProjectedSpendData}
           categoryComparisonData={categoryComparisonData}
         />
-        <div className="rounded-[2rem] border border-white/60 bg-card p-6 shadow-soft">
+        <div className="rounded-[2rem] border border-white/60 bg-card p-6 shadow-soft xl:max-w-3xl">
           <EventNotesForm action={updateNotes} defaultValue={event.notes} />
         </div>
       </section>
