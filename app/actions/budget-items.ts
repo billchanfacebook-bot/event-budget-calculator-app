@@ -123,8 +123,7 @@ export async function updateBudgetItemAction(
       notes: normalizeOptionalString(parsed.data.notes)
     })
     .eq("id", itemId)
-    .eq("event_id", eventId)
-    .eq("created_by", user.id);
+    .eq("event_id", eventId);
 
   if (error) {
     return {
@@ -153,8 +152,7 @@ export async function deleteBudgetItemAction(eventId: string, itemId: string) {
     .from("budget_items")
     .delete()
     .eq("id", itemId)
-    .eq("event_id", eventId)
-    .eq("created_by", user.id);
+    .eq("event_id", eventId);
 
   revalidatePath("/dashboard");
   revalidatePath("/events");

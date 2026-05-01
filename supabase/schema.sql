@@ -132,33 +132,37 @@ using (id = auth.uid())
 with check (id = auth.uid());
 
 drop policy if exists "events_select_own" on public.events;
-create policy "events_select_own"
+drop policy if exists "events_select_all_authenticated" on public.events;
+create policy "events_select_all_authenticated"
 on public.events
 for select
 to authenticated
-using (created_by = auth.uid());
+using (true);
 
 drop policy if exists "events_insert_own" on public.events;
-create policy "events_insert_own"
+drop policy if exists "events_insert_all_authenticated" on public.events;
+create policy "events_insert_all_authenticated"
 on public.events
 for insert
 to authenticated
-with check (created_by = auth.uid());
+with check (true);
 
 drop policy if exists "events_update_own" on public.events;
-create policy "events_update_own"
+drop policy if exists "events_update_all_authenticated" on public.events;
+create policy "events_update_all_authenticated"
 on public.events
 for update
 to authenticated
-using (created_by = auth.uid())
-with check (created_by = auth.uid());
+using (true)
+with check (true);
 
 drop policy if exists "events_delete_own" on public.events;
-create policy "events_delete_own"
+drop policy if exists "events_delete_all_authenticated" on public.events;
+create policy "events_delete_all_authenticated"
 on public.events
 for delete
 to authenticated
-using (created_by = auth.uid());
+using (true);
 
 drop policy if exists "budget_categories_read_authenticated" on public.budget_categories;
 create policy "budget_categories_read_authenticated"
@@ -190,116 +194,61 @@ to authenticated
 using (true);
 
 drop policy if exists "budget_items_select_by_owner" on public.budget_items;
-create policy "budget_items_select_by_owner"
+drop policy if exists "budget_items_select_all_authenticated" on public.budget_items;
+create policy "budget_items_select_all_authenticated"
 on public.budget_items
 for select
 to authenticated
-using (
-  exists (
-    select 1
-    from public.events
-    where events.id = budget_items.event_id
-      and events.created_by = auth.uid()
-  )
-);
+using (true);
 
 drop policy if exists "budget_items_insert_by_owner" on public.budget_items;
-create policy "budget_items_insert_by_owner"
+drop policy if exists "budget_items_insert_all_authenticated" on public.budget_items;
+create policy "budget_items_insert_all_authenticated"
 on public.budget_items
 for insert
 to authenticated
-with check (
-  created_by = auth.uid()
-  and exists (
-    select 1
-    from public.events
-    where events.id = budget_items.event_id
-      and events.created_by = auth.uid()
-  )
-);
+with check (true);
 
 drop policy if exists "budget_items_update_by_owner" on public.budget_items;
-create policy "budget_items_update_by_owner"
+drop policy if exists "budget_items_update_all_authenticated" on public.budget_items;
+create policy "budget_items_update_all_authenticated"
 on public.budget_items
 for update
 to authenticated
-using (
-  exists (
-    select 1
-    from public.events
-    where events.id = budget_items.event_id
-      and events.created_by = auth.uid()
-  )
-)
-with check (
-  created_by = auth.uid()
-  and exists (
-    select 1
-    from public.events
-    where events.id = budget_items.event_id
-      and events.created_by = auth.uid()
-  )
-);
+using (true)
+with check (true);
 
 drop policy if exists "budget_items_delete_by_owner" on public.budget_items;
-create policy "budget_items_delete_by_owner"
+drop policy if exists "budget_items_delete_all_authenticated" on public.budget_items;
+create policy "budget_items_delete_all_authenticated"
 on public.budget_items
 for delete
 to authenticated
-using (
-  exists (
-    select 1
-    from public.events
-    where events.id = budget_items.event_id
-      and events.created_by = auth.uid()
-  )
-);
+using (true);
 
 drop policy if exists "payments_select_by_owner" on public.payments;
-create policy "payments_select_by_owner"
+drop policy if exists "payments_select_all_authenticated" on public.payments;
+create policy "payments_select_all_authenticated"
 on public.payments
 for select
 to authenticated
-using (
-  exists (
-    select 1
-    from public.budget_items
-    join public.events on events.id = budget_items.event_id
-    where budget_items.id = payments.budget_item_id
-      and events.created_by = auth.uid()
-  )
-);
+using (true);
 
 drop policy if exists "payments_insert_by_owner" on public.payments;
-create policy "payments_insert_by_owner"
+drop policy if exists "payments_insert_all_authenticated" on public.payments;
+create policy "payments_insert_all_authenticated"
 on public.payments
 for insert
 to authenticated
-with check (
-  created_by = auth.uid()
-  and exists (
-    select 1
-    from public.budget_items
-    join public.events on events.id = budget_items.event_id
-    where budget_items.id = payments.budget_item_id
-      and events.created_by = auth.uid()
-  )
-);
+with check (true);
 
 drop policy if exists "payments_delete_by_owner" on public.payments;
-create policy "payments_delete_by_owner"
+drop policy if exists "payments_delete_all_authenticated" on public.payments;
+create policy "payments_delete_all_authenticated"
 on public.payments
 for delete
 to authenticated
-using (
-  exists (
-    select 1
-    from public.budget_items
-    join public.events on events.id = budget_items.event_id
-    where budget_items.id = payments.budget_item_id
-      and events.created_by = auth.uid()
-  )
-);
+using (true);
 
 insert into public.budget_categories (slug, name, sort_order)
 values

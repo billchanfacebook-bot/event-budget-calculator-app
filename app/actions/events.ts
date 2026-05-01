@@ -123,8 +123,7 @@ export async function updateEventAction(
       budget_cap: parsed.data.budgetCap,
       notes: normalizeOptionalString(parsed.data.notes)
     })
-    .eq("id", eventId)
-    .eq("created_by", user.id);
+    .eq("id", eventId);
 
   if (error) {
     return {
@@ -150,7 +149,7 @@ export async function deleteEventAction(eventId: string) {
     redirect("/login");
   }
 
-  await supabase.from("events").delete().eq("id", eventId).eq("created_by", user.id);
+  await supabase.from("events").delete().eq("id", eventId);
 
   revalidatePath("/dashboard");
   revalidatePath("/events");
@@ -186,8 +185,7 @@ export async function updateEventNotesAction(
     .update({
       notes: normalizeOptionalString(parsed.data.notes)
     })
-    .eq("id", eventId)
-    .eq("created_by", user.id);
+    .eq("id", eventId);
 
   if (error) {
     return {

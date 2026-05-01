@@ -17,7 +17,7 @@ function normalizeOptionalString(value: string | undefined) {
   return value && value.trim().length > 0 ? value.trim() : null;
 }
 
-async function syncBudgetItemPaymentSummary(eventId: string, itemId: string, userId: string) {
+async function syncBudgetItemPaymentSummary(eventId: string, itemId: string) {
   const supabase = await createClient();
   const [{ data: item, error: itemError }, { data: payments, error: paymentsError }] = await Promise.all([
     supabase
@@ -25,7 +25,6 @@ async function syncBudgetItemPaymentSummary(eventId: string, itemId: string, use
       .select("estimated_cost")
       .eq("id", itemId)
       .eq("event_id", eventId)
-      .eq("created_by", userId)
       .single(),
     supabase.from("payments").select("amount").eq("budget_item_id", itemId)
   ]);
@@ -50,8 +49,7 @@ async function syncBudgetItemPaymentSummary(eventId: string, itemId: string, use
       payment_status: paymentStatus
     })
     .eq("id", itemId)
-    .eq("event_id", eventId)
-    .eq("created_by", userId);
+    .eq("event_id", eventId);
 
   if (updateError) {
     throw new Error(updateError.message);
@@ -109,7 +107,7 @@ export async function createPaymentAction(
   }
 
   try {
-    await syncBudgetItemPaymentSummary(eventId, itemId, user.id);
+    await syncBudgetItemPaymentSummary(eventId, itemId);
   } catch (syncError) {
     return {
       error: syncError instanceof Error ? syncError.message : "Unable to sync payment totals."
@@ -133,8 +131,8 @@ export async function deletePaymentAction(eventId: string, itemId: string, payme
     redirect("/login");
   }
 
-  await supabase.from("payments").delete().eq("id", paymentId).eq("created_by", user.id);
-  await syncBudgetItemPaymentSummary(eventId, itemId, user.id);
+  await supabase.from("payments").delete().eq("id", paymentId);
+  await syncBudgetItemPaymentSummary(eventId, itemId);
 
   revalidatePaymentViews(eventId, itemId);
   redirect(`/events/${eventId}/items/${itemId}/edit`);
