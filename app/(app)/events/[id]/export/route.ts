@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { buildBudgetItemsCsv, createCsvResponse, slugifyFilename } from "@/lib/export";
+import { buildEventBudgetWorkbook, createXlsxResponse } from "@/lib/excel-export";
+import { slugifyFilename } from "@/lib/export";
 import { mapEventWithItems } from "@/lib/events";
 import { createClient } from "@/lib/supabase/server";
 
@@ -31,7 +32,7 @@ export async function GET(request: Request, { params }: EventExportRouteProps) {
   }
 
   const event = mapEventWithItems(data);
-  const csv = buildBudgetItemsCsv(event);
+  const workbook = await buildEventBudgetWorkbook(event);
 
-  return createCsvResponse(`${slugifyFilename(event.name) || "event"}-budget-items.csv`, csv);
+  return createXlsxResponse(`${slugifyFilename(event.name) || "event"}-budget-workbook.xlsx`, workbook);
 }

@@ -85,7 +85,7 @@ export default async function EventDetailPage({ params, searchParams }: EventDet
             <div className="rounded-2xl bg-shell px-4 py-3 text-sm">
               Currency: <span className="font-semibold">{event.currency}</span>
             </div>
-            <ExportLink href={`/events/${event.id}/export`} label="Export CSV" />
+            <ExportLink href={`/events/${event.id}/export`} label="Export Excel" />
             <DeleteEventButton eventId={event.id} />
           </div>
         </div>
